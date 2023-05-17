@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>Search Flights</h2>
+
+<form action="/" method="post" class="mb-4">
+  <div class="form-group">
+    <label for="origin">Origin (3-letter airport code):</label>
+    <input type="text" id="origin" name="origin" class="form-control" required>
+  </div>
+  <div class="form-group">
+    <label for="destination">Destination (3-letter airport code):</label>
+    <input type="text" id="destination" name="destination" class="form-control" required>
+  </div>
+  <button type="submit" class="btn btn-primary">Search Flights</button>
+</form>
+
+{% endblock %}

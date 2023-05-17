@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>Select Seat for {{ flight_number }}</h2>
+
+<style>
+  .seat-btn {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    margin: 0 2px;
+    text-align: center;
+    line-height: 30px;
+  }
+  .seat-row {
+    margin-bottom: 5px;
+  }
+  .aisle {
+    width: 30px;
+  }
+  @media (min-width: 576px) {
+    .seat-section {
+      max-width: 180px;
+    }
+  }
+</style>
+
+<div class="container">
+    <form action="/select/{{ flight_number }}" method="post">
+        <div class="plane">
+            {% for row in range(1, 21) %}
+            <div class="row seat-row justify-content-center">
+                <div class="col-6 col-sm-5 seat-section d-flex justify-content-around">
+                    {% for seat in 'ABC' %}
+                    <button type="submit" name="seat" value="{{ row }}{{ seat }}" class="btn btn-primary seat-btn">{{ row }}{{ seat }}</button>
+                    {% endfor %}
+                </div>
+                <div class="col-2 aisle d-none d-sm-block"></div>
+                <div class="col-6 col-sm-5 seat-section d-flex justify-content-around">
+                    {% for seat in 'DEF' %}
+                    <button type="submit" name="seat" value="{{ row }}{{ seat }}" class="btn btn-primary seat-btn">{{ row }}{{ seat }}</button>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </form>
+</div>
+
+{% endblock %}
