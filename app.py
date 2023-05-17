@@ -58,19 +58,5 @@ def select_seat(flight_number):
     return render_template('select_seat.html', flight_number=flight_number)
 
 
-def generate_flights(origin, destination):
-    """Generate 10 random flights based on the given origin and destination."""
-    current_time = datetime.now()
-
-    flights = [{
-        'flight_number': f'Flight {i}',
-        'origin': origin,
-        'destination': destination,
-        'time': (current_time + timedelta(hours=i)).strftime('%H:%M')
-    } for i in range(1, 11)]
-
-    return flights
-
-
 if __name__ == '__main__':
     app.run(debug=True)
