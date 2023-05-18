@@ -18,4 +18,4 @@ $ poetry run python app.py
 $ poetry run python worker.py
 ```
 
-![Airline Reservation](/images/app.png)
+![Airline Reservation](/static/app.png)

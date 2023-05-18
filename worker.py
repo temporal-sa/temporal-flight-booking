@@ -7,8 +7,9 @@ from temporalio.worker import Worker
 
 from flights_activities import (
     get_flights,
+    get_seat_rows,
 )
-from flights_workflow import GetFlightsWorkflow
+from flights_workflow import GetFlightsWorkflow, GetSeatConfigurationWorkflow
 
 
 async def main():
@@ -39,9 +40,10 @@ async def main():
     worker = Worker(
         client,
         task_queue="default",
-        workflows=[GetFlightsWorkflow],
+        workflows=[GetFlightsWorkflow, GetSeatConfigurationWorkflow],
         activities=[
             get_flights,
+            get_seat_rows,
         ],
     )
     await worker.run()

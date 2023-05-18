@@ -8,6 +8,7 @@
   <thead>
     <tr>
       <th scope="col">Flight Number</th>
+      <th scope="col">Flight Model</th>
       <th scope="col">Origin</th>
       <th scope="col">Destination</th>
       <th scope="col">Time</th>
@@ -18,10 +19,11 @@
     {% for flight in flights %}
         <tr>
             <td>{{ flight.flight_number }}</td>
+            <td>{{ flight.flight_model }}</td>
             <td>{{ flight.origin }}</td>
             <td>{{ flight.destination }}</td>
             <td>{{ flight.time }}</td>
-            <td><a href="/select/{{ flight.flight_number }}" class="btn btn-primary">Select</a></td>
+            <td><a href="/select/{{ reservation_id }}/{{ flight.origin }}/{{ flight.destination }}/{{ flight.flight_number }}/{{ flight.flight_model }}" class="btn btn-primary">Select</a></td>
         </tr>
     {% endfor %}
   </tbody>

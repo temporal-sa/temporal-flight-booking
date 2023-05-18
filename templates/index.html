@@ -4,16 +4,54 @@
 
 <h2>Search Flights</h2>
 
-<form action="/" method="post" class="mb-4">
+<div id="error-message" class="alert alert-danger" role="alert" style="display: none;"></div>
+
+<form id="flight-search-form" class="mb-4" Action="/" Method="POST">
   <div class="form-group">
-    <label for="origin">Origin (3-letter airport code):</label>
-    <input type="text" id="origin" name="origin" class="form-control" required>
+    <label for="origin">Origin:</label>
+    <select id="origin" name="origin" class="form-control" required>
+      <option value="" selected disabled>Select Origin City</option>
+      {% for city in cities %}
+      <option value="{{ city }}">{{ city }}</option>
+      {% endfor %}
+    </select>
   </div>
   <div class="form-group">
-    <label for="destination">Destination (3-letter airport code):</label>
-    <input type="text" id="destination" name="destination" class="form-control" required>
+    <label for="destination">Destination:</label>
+    <select id="destination" name="destination" class="form-control" required>
+      <option value="" selected disabled>Select Destination City</option>
+      {% for city in cities %}
+      <option value="{{ city }}">{{ city }}</option>
+      {% endfor %}
+    </select>
   </div>
-  <button type="submit" class="btn btn-primary">Search Flights</button>
+  <button type="submit" class="btn btn-primary my-3">Search Flights</button>
 </form>
 
+<script>
+  document.getElementById("flight-search-form").addEventListener("submit", function(event) {
+    event.preventDefault();
+    
+    var origin = document.getElementById("origin").value;
+    var destination = document.getElementById("destination").value;
+    var errorMessageElement = document.getElementById("error-message");
+    
+    if (!origin || !destination) {
+      errorMessageElement.style.display = "block";
+      errorMessageElement.textContent = "Please select both origin and destination cities.";
+      return;
+    }
+    
+    if (origin === destination) {
+      errorMessageElement.style.display = "block";
+      errorMessageElement.textContent = "Origin and destination cities cannot be the same.";
+      return;
+    }
+    
+    // Proceed with flight search
+    document.getElementById("flight-search-form").submit();
+  });
+</script>
+
 {% endblock %}
+

@@ -25,11 +25,10 @@
     }
   }
 </style>
-
 <div class="container">
-    <form action="/select/{{ flight_number }}" method="post">
+    <form action="/select/{{ reservation_id }}/{{ origin }}/{{ destination }}/{{ flight_number }}/{{ flight_model }}" method="post">
         <div class="plane">
-            {% for row in range(1, 21) %}
+            {% for row in range(1, seat_rows) %}
             <div class="row seat-row justify-content-center">
                 <div class="col-6 col-sm-5 seat-section d-flex justify-content-around">
                     {% for seat in 'ABC' %}
