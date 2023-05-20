@@ -20,6 +20,11 @@
           <button class="btn btn-dark my-3">Confirm Payment</button>
           <a href="/" class="btn btn-secondary my-3">Cancel</a>
         </div>
+        {% if error_message %}
+        <div style="color: red;">
+            {{ error_message }}
+        </div>
+      {% endif %}      
       </form>
     </div>
   </div>

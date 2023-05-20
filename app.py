@@ -71,21 +71,25 @@ async def payment(reservation_id, origin, destination, flight_number, flight_mod
         # Start Temporal workflow
         client = await Client.connect("localhost:7233")
         
-        try:
-            receipt_url = await client.execute_workflow(
-                CreatePaymentWorkflow.run,
-                input,
-                id=f'payment-{origin}-{destination}-{reservation_id}',
-                task_queue="default",
-            )
-        except WorkflowFailureError:
-            return render_template('index.html', cities=generate_cities())
+        isPayment = False
+        while isPayment is not True:
+            try:
+                receipt_url = await client.execute_workflow(
+                    CreatePaymentWorkflow.run,
+                    input,
+                    id=f'payment-{origin}-{destination}-{reservation_id}',
+                    task_queue="default",
+                )
+
+                isPayment = True
+            except WorkflowFailureError:
+                return render_template('payment.html',reservation_id=reservation_id, origin=origin, destination=destination, flight_number=flight_number, flight_model=flight_model, seat=seat, error_message="Invalid Credit Card.")
 
         # Generate confirmation number: 6 characters, uppercase letters and digits
         confirmation_number = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
 
         return render_template('confirmation.html', flight_number=flight_number, seat=seat, receipt_url=receipt_url,confirmation_number=confirmation_number)
-    return render_template('payment.html',flight_number=flight_number, flight_model=flight_model, seat=seat)
+    return render_template('payment.html',reservation_id=reservation_id, origin=origin, destination=destination, flight_number=flight_number, flight_model=flight_model, seat=seat)
 
 
 def generate_cities():
