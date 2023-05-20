@@ -32,13 +32,13 @@
             <div class="row seat-row justify-content-center">
                 <div class="col-6 col-sm-5 seat-section d-flex justify-content-around">
                     {% for seat in 'ABC' %}
-                    <button type="submit" name="seat" value="{{ row }}{{ seat }}" class="btn btn-primary seat-btn">{{ row }}{{ seat }}</button>
+                    <button type="submit" name="seat" value="{{ row }}{{ seat }}" class="btn btn-dark seat-btn">{{ row }}{{ seat }}</button>
                     {% endfor %}
                 </div>
                 <div class="col-2 aisle d-none d-sm-block"></div>
                 <div class="col-6 col-sm-5 seat-section d-flex justify-content-around">
                     {% for seat in 'DEF' %}
-                    <button type="submit" name="seat" value="{{ row }}{{ seat }}" class="btn btn-primary seat-btn">{{ row }}{{ seat }}</button>
+                    <button type="submit" name="seat" value="{{ row }}{{ seat }}" class="btn btn-dark seat-btn">{{ row }}{{ seat }}</button>
                     {% endfor %}
                 </div>
             </div>

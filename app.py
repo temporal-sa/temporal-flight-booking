@@ -1,13 +1,13 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, abort
 import random
 import string
 from datetime import datetime, timedelta
-from temporalio.client import Client
-from flights_activities import GetFlightsInput
+from temporalio.client import Client, WorkflowFailureError
+from flights_activities import GetFlightsInput, GetPaymentInput
 import uuid
 
 # Import the workflow from the previous code
-from flights_workflow import GetFlightsWorkflow, GetSeatConfigurationWorkflow
+from flights_workflow import GetFlightsWorkflow, GetSeatConfigurationWorkflow, CreatePaymentWorkflow
 
 
 app = Flask(__name__)
@@ -44,10 +44,7 @@ async def select_seat(reservation_id, origin, destination, flight_number, flight
         # Get form data
         seat = request.form.get('seat')
 
-        # Generate confirmation number: 6 characters, uppercase letters and digits
-        confirmation_number = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-
-        return render_template('confirmation.html', flight_number=flight_number, flight_model=flight_model, seat=seat, confirmation_number=confirmation_number)
+        return render_template('payment.html', reservation_id=reservation_id, origin=origin, destination=destination, flight_number=flight_number, flight_model=flight_model, seat=seat)
     else:
         # Start Temporal workflow
         client = await Client.connect("localhost:7233")
@@ -60,6 +57,36 @@ async def select_seat(reservation_id, origin, destination, flight_number, flight
         ) 
 
         return render_template('select_seat.html', reservation_id=reservation_id, origin=origin, destination=destination, flight_number=flight_number, flight_model=flight_model, seat_rows=seat_rows)
+
+@app.route('/payment/<reservation_id>/<origin>/<destination>/<flight_number>/<flight_model>/<seat>', methods=['GET', 'POST'])
+async def payment(reservation_id, origin, destination, flight_number, flight_model, seat):
+    if request.method == 'POST':
+        # Get form data
+        input = GetPaymentInput(
+            amount='149999',
+            token=request.form.get('credit-card'),
+            currency='usd'
+        )   
+
+        # Start Temporal workflow
+        client = await Client.connect("localhost:7233")
+        
+        try:
+            receipt_url = await client.execute_workflow(
+                CreatePaymentWorkflow.run,
+                input,
+                id=f'payment-{origin}-{destination}-{reservation_id}',
+                task_queue="default",
+            )
+        except WorkflowFailureError:
+            return render_template('index.html', cities=generate_cities())
+
+        # Generate confirmation number: 6 characters, uppercase letters and digits
+        confirmation_number = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+
+        return render_template('confirmation.html', flight_number=flight_number, seat=seat, receipt_url=receipt_url,confirmation_number=confirmation_number)
+    return render_template('payment.html',flight_number=flight_number, flight_model=flight_model, seat=seat)
+
 
 def generate_cities():
     # List of cities

@@ -4,9 +4,14 @@
 
 <h2>Booking Confirmation</h2>
 
-<p>Flight: {{ flight_number }}</p>
-<p>Model: {{ flight_model }}</p>
-<p>Seat: {{ seat }}</p>
-<p>Confirmation Number: {{ confirmation_number }}</p>
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title">Confirmation Details</h5>
+    <p class="card-text">Flight Number: {{ flight_number }}</p>
+    <p class="card-text">Seat: {{ seat }}</p>
+    <p class="card-text">Payment Receipt: <a href="{{ receipt_url }}">View Receipt</a></p>
+    <p class="card-text">Confirmation Number: {{ confirmation_number }}</p>
+  </div>
+</div>
 
 {% endblock %}
