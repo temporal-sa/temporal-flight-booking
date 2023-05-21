@@ -8,6 +8,7 @@ authors = ["Your Name <your.email@example.com>"]
 python = "^3.11"
 flask = {extras = ["async"], version = "^2.2.3"}
 stripe = "^2.76.0"
+openai = "^0.27.7"
 
 [tool.poetry.dev-dependencies]
 

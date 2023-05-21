@@ -1,4 +1,6 @@
 import stripe
+import openai
+import json
 import asyncio
 import os
 from dataclasses import dataclass
@@ -6,6 +8,7 @@ from datetime import datetime, timedelta
 from temporalio import activity
 
 stripe.api_key = os.environ.get('STRIPE_API_KEY')
+openai.api_key = os.environ.get('CHATGPT_API_KEY')
 
 @dataclass
 class GetFlightsInput:
@@ -42,7 +45,7 @@ async def get_seat_rows(model: str) -> int:
 
 @activity.defn
 async def create_payment(input: GetPaymentInput):
-    await asyncio.sleep(3)
+    await asyncio.sleep(1)
 
     try:
         # Create a customer
@@ -63,3 +66,21 @@ async def create_payment(input: GetPaymentInput):
     except stripe.error.StripeError as e:
         # Handle any Stripe errors
         raise Exception(e.user_message)
+
+@activity.defn
+async def estimate_flight_cost(input: GetFlightsInput) -> int:
+    model_id = 'gpt-3.5-turbo'
+    messages = [ {"role": "user", "content": f'provide cost estimate for a flight between {input.origin} and {input.destination}, cost does not need to be real time. Respond JSON using a field called cost. Value should be a single integer, not a range, number only.'} ]
+
+    # Call the API
+    completion = openai.ChatCompletion.create(
+    model=model_id,
+    messages=messages
+    )
+
+    # Extract and return the generated answer
+    print(f'ChatGPT {completion.choices[0].message.content}')
+    cost = json.loads(completion.choices[0].message.content)
+    answer = cost["cost"]
+
+    return answer   

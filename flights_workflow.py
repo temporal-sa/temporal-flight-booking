@@ -5,7 +5,7 @@ from temporalio.common import RetryPolicy
 from dataclasses import dataclass
 
 with workflow.unsafe.imports_passed_through():
-    from flights_activities import GetFlightsInput, GetPaymentInput, get_flights, get_seat_rows, create_payment
+    from flights_activities import GetFlightsInput, GetPaymentInput, get_flights, get_seat_rows, create_payment, estimate_flight_cost
 
 @dataclass
 class FlightReservationInfo:
@@ -40,6 +40,7 @@ class FlightBookingWorkflow:
         self._flights = None
         self._seat_rows = None  
         self._reservation_info = None   
+        self._cost_estimate = None
         self._pending_update_plane_model: asyncio.Queue[str] = asyncio.Queue()
         self._pending_update_reservation_info: asyncio.Queue[str] = asyncio.Queue()
         self._exit = False
@@ -48,7 +49,8 @@ class FlightBookingWorkflow:
     async def run(self, input: GetFlightsInput):
         self._flights = GetFlightsInput
         self._seat_rows = int
-        reservation_info: FlightReservationInfo = None
+        self._cost_estimate = int
+        #reservation_info: FlightReservationInfo = None
 
         flights = await workflow.execute_activity(
             get_flights,
@@ -59,6 +61,13 @@ class FlightBookingWorkflow:
             ),                  
         )
         self._flights = flights
+
+        cost_estimate = await workflow.execute_activity(
+            estimate_flight_cost,
+            input,
+            start_to_close_timeout=timedelta(seconds=60),                 
+        )
+        self._cost_estimate = cost_estimate        
 
         # Wait for queue item or exit
         await workflow.wait_condition(
@@ -98,7 +107,11 @@ class FlightBookingWorkflow:
     @workflow.query
     def reservation_info(self) -> FlightReservationInfo:
         return self._reservation_info
-                    
+
+    @workflow.query
+    def cost_estimate(self) -> int:
+        return self._cost_estimate
+
     @workflow.signal
     async def update_plane_model(self, plane_model: str) -> None:
         await self._pending_update_plane_model.put(plane_model)

@@ -10,7 +10,7 @@
       <form action="/payment/{{ reservation_id }}/{{ origin }}/{{ destination }}" method="post">
         <div class="form-group">
           <label for="amount">Amount:</label>
-          <input type="text" id="amount" name="amount" class="form-control" value="$1499.99" readonly>          
+          <input type="text" id="amount" name="amount" class="form-control" value="${{ cost_estimate }}" readonly>          
         </div>
         <div class="form-group">
           <label for="credit-card">Credit Card Number:</label>

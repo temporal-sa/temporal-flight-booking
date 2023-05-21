@@ -54,13 +54,13 @@ async def select_seat(reservation_id, origin, destination, flight_number, flight
         # Get seat selection
         seat = request.form.get('seat')
 
-        # Save reservation info in booking workflow using signal
-        reservation_info=FlightReservationInfo(reservation_id=reservation_id, origin=origin, destination=destination, flight_number=flight_number, flight_model=flight_model, seat=seat)
-        
+        # Save reservation info in booking workflow using signal and query cost of flight
+        reservation_info=FlightReservationInfo(reservation_id=reservation_id, origin=origin, destination=destination, flight_number=flight_number, flight_model=flight_model, seat=seat)        
         booking_workflow = client.get_workflow_handle(f'booking-{origin}-{destination}-{reservation_id}')
-        await booking_workflow.signal(FlightBookingWorkflow.update_reservation_info, reservation_info)        
-
-        return render_template('payment.html', reservation_id=reservation_id, origin=origin, destination=destination)
+        await booking_workflow.signal(FlightBookingWorkflow.update_reservation_info, reservation_info)
+        cost_estimate=await booking_workflow.query(FlightBookingWorkflow.cost_estimate)
+    
+        return render_template('payment.html', reservation_id=reservation_id, origin=origin, destination=destination, cost_estimate=cost_estimate)
     else:
         booking_workflow = client.get_workflow_handle(f'booking-{origin}-{destination}-{reservation_id}')
         await booking_workflow.signal(FlightBookingWorkflow.update_plane_model, flight_model)
@@ -75,15 +75,16 @@ async def select_seat(reservation_id, origin, destination, flight_number, flight
 
 @app.route('/payment/<reservation_id>/<origin>/<destination>', methods=['GET', 'POST'])
 async def payment(reservation_id, origin, destination):
-    # Get booking workflow handle and query for reservation_info
+    # Get booking workflow handle and query for reservation_info and cost of flight
     client = await Client.connect("localhost:7233")
     booking_workflow = client.get_workflow_handle(f'booking-{origin}-{destination}-{reservation_id}')
     reservation_info=await booking_workflow.query(FlightBookingWorkflow.reservation_info)
-  
+    cost_estimate=await booking_workflow.query(FlightBookingWorkflow.cost_estimate)
+
     if request.method == 'POST':
         # Get form data
         input = GetPaymentInput(
-            amount='149999',
+            amount=str(cost_estimate * 100),
             token=request.form.get('credit-card'),
             currency='usd'
         )   
@@ -104,13 +105,13 @@ async def payment(reservation_id, origin, destination):
 
                 isPayment = True
             except WorkflowFailureError:
-                return render_template('payment.html',reservation_id=reservation_info.reservation_id, origin=reservation_info.origin, destination=reservation_info.destination, flight_number=reservation_info.flight_number, flight_model=reservation_info.flight_model, seat=reservation_info.seat, error_message="Invalid Credit Card.")
+                return render_template('payment.html',reservation_id=reservation_info.reservation_id, origin=reservation_info.origin, destination=reservation_info.destination, flight_number=reservation_info.flight_number, flight_model=reservation_info.flight_model, seat=reservation_info.seat, cost_estimate=cost_estimate, error_message="Invalid Credit Card.")
 
         # Generate confirmation number: 6 characters, uppercase letters and digits
         confirmation_number = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
 
         return render_template('confirmation.html', flight_number=reservation_info.flight_number, seat=reservation_info.seat, receipt_url=receipt_url,confirmation_number=confirmation_number)
-    return render_template('payment.html',reservation_id=reservation_id, origin=origin, destination=destination)
+    return render_template('payment.html',reservation_id=reservation_id, origin=origin, destination=destination, cost_estimate=cost_estimate)
 
 
 def generate_cities():
