@@ -9,7 +9,7 @@ from flights_activities import (
     get_flights,
     get_seat_rows,
     create_payment,
-    estimate_flight_cost,
+    get_flight_details,
 )
 from flights_workflow import CreatePaymentWorkflow, FlightBookingWorkflow
 
@@ -47,7 +47,7 @@ async def main():
             get_flights,
             get_seat_rows,
             create_payment,
-            estimate_flight_cost,
+            get_flight_details,
         ],
     )
     await worker.run()

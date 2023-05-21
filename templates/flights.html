@@ -11,6 +11,7 @@
       <th scope="col">Flight Model</th>
       <th scope="col">Origin</th>
       <th scope="col">Destination</th>
+      <th scope="col">Miles</th>      
       <th scope="col">Time</th>
       <th scope="col">Actions</th>
     </tr>
@@ -22,6 +23,7 @@
             <td>{{ flight.flight_model }}</td>
             <td>{{ flight.origin }}</td>
             <td>{{ flight.destination }}</td>
+            <td>{{ flight.miles }}</td>            
             <td>{{ flight.time }}</td>
             <td><a href="/select/{{ reservation_id }}/{{ flight.origin }}/{{ flight.destination }}/{{ flight.flight_number }}/{{ flight.flight_model }}" class="btn btn-dark">Select</a></td>
         </tr>

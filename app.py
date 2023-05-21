@@ -2,8 +2,9 @@ from flask import Flask, render_template, request, abort
 import asyncio
 import random
 import string
-from temporalio.client import Client, WorkflowFailureError
-from flights_activities import GetFlightsInput, GetPaymentInput
+from temporalio.exceptions import FailureError
+from temporalio.client import Client, WorkflowFailureError, WorkflowExecution
+from flights_activities import GetFlightsInput, GetFlightDetailsInput, GetPaymentInput
 from flights_workflow import FlightReservationInfo
 import uuid
 from typing import List, Dict
@@ -20,7 +21,7 @@ async def index():
  
     if request.method == 'POST':
         # Get form data
-        input = GetFlightsInput(
+        flight_details_input = GetFlightDetailsInput(
             origin=request.form.get('origin'),
             destination=request.form.get('destination'),
         )   
@@ -30,17 +31,20 @@ async def index():
 
         booking_workflow = await client.start_workflow(
             FlightBookingWorkflow.run,
-            input,
-            id=f'booking-{input.origin}-{input.destination}-{reservation_id}',
+            flight_details_input,
+            id=f'booking-{reservation_id}',
             task_queue="default",
         )
 
-        # Get the flights from booking workflow query
+        # Get the flights from booking workflow query. Can take a few queries to succeed.
         flights: List[Dict] = []
         while not flights:
-            await asyncio.sleep(1)
-            flights=await booking_workflow.query(FlightBookingWorkflow.flights)
-        
+            await asyncio.sleep(2)
+            try:
+                flights=await booking_workflow.query(FlightBookingWorkflow.flights)
+            except:
+                pass
+
         return render_template('flights.html', reservation_id=reservation_id, flights=flights)
     return render_template('index.html', cities=generate_cities())
 
@@ -56,41 +60,38 @@ async def select_seat(reservation_id, origin, destination, flight_number, flight
 
         # Save reservation info in booking workflow using signal and query cost of flight
         reservation_info=FlightReservationInfo(reservation_id=reservation_id, origin=origin, destination=destination, flight_number=flight_number, flight_model=flight_model, seat=seat)        
-        booking_workflow = client.get_workflow_handle(f'booking-{origin}-{destination}-{reservation_id}')
+        booking_workflow = client.get_workflow_handle(f'booking-{reservation_id}')
         await booking_workflow.signal(FlightBookingWorkflow.update_reservation_info, reservation_info)
-        cost_estimate=await booking_workflow.query(FlightBookingWorkflow.cost_estimate)
+        flight_details=await booking_workflow.query(FlightBookingWorkflow.flight_details)
     
-        return render_template('payment.html', reservation_id=reservation_id, origin=origin, destination=destination, cost_estimate=cost_estimate)
+        return render_template('payment.html', reservation_id=reservation_id, cost_estimate=flight_details.cost)
     else:
-        booking_workflow = client.get_workflow_handle(f'booking-{origin}-{destination}-{reservation_id}')
+        booking_workflow = client.get_workflow_handle(f'booking-{reservation_id}')
         await booking_workflow.signal(FlightBookingWorkflow.update_plane_model, flight_model)
 
         # Query booking workflow for the seat configuration
         seat_rows: int = None
         while seat_rows is None:
-            await asyncio.sleep(1)
+            await asyncio.sleep(2)
             seat_rows=await booking_workflow.query(FlightBookingWorkflow.seat_rows)
 
         return render_template('select_seat.html', reservation_id=reservation_id, origin=origin, destination=destination, flight_number=flight_number, flight_model=flight_model, seat_rows=seat_rows)
 
-@app.route('/payment/<reservation_id>/<origin>/<destination>', methods=['GET', 'POST'])
-async def payment(reservation_id, origin, destination):
+@app.route('/payment/<reservation_id>', methods=['GET', 'POST'])
+async def payment(reservation_id):
     # Get booking workflow handle and query for reservation_info and cost of flight
     client = await Client.connect("localhost:7233")
-    booking_workflow = client.get_workflow_handle(f'booking-{origin}-{destination}-{reservation_id}')
+    booking_workflow = client.get_workflow_handle(f'booking-{reservation_id}')
     reservation_info=await booking_workflow.query(FlightBookingWorkflow.reservation_info)
-    cost_estimate=await booking_workflow.query(FlightBookingWorkflow.cost_estimate)
+    flight_details=await booking_workflow.query(FlightBookingWorkflow.flight_details)
 
     if request.method == 'POST':
         # Get form data
         input = GetPaymentInput(
-            amount=str(cost_estimate * 100),
+            amount=str(flight_details.cost * 100),
             token=request.form.get('credit-card'),
             currency='usd'
         )   
-
-        # Start payment workflow
-        client = await Client.connect("localhost:7233")
         
         # Ensure credit card is valid otherwise throw error
         isPayment = False
@@ -99,19 +100,20 @@ async def payment(reservation_id, origin, destination):
                 receipt_url = await client.execute_workflow(
                     CreatePaymentWorkflow.run,
                     input,
-                    id=f'payment-{reservation_info.origin}-{reservation_info.destination}-{reservation_info.reservation_id}',
+                    id=f'payment-{reservation_info.reservation_id}',
                     task_queue="default",
                 )
 
-                isPayment = True
+                isPayment = True   
             except WorkflowFailureError:
-                return render_template('payment.html',reservation_id=reservation_info.reservation_id, origin=reservation_info.origin, destination=reservation_info.destination, flight_number=reservation_info.flight_number, flight_model=reservation_info.flight_model, seat=reservation_info.seat, cost_estimate=cost_estimate, error_message="Invalid Credit Card.")
-
+                return render_template('payment.html',reservation_id=reservation_info.reservation_id, origin=reservation_info.origin, destination=reservation_info.destination, flight_number=reservation_info.flight_number, flight_model=reservation_info.flight_model, seat=reservation_info.seat, cost_estimate=flight_details.cost, error_message="Invalid Credit Card.")
+            except FailureError:
+                return render_template('payment.html',reservation_id=reservation_info.reservation_id, origin=reservation_info.origin, destination=reservation_info.destination, flight_number=reservation_info.flight_number, flight_model=reservation_info.flight_model, seat=reservation_info.seat, cost_estimate=flight_details.cost, error_message="Payment is already processing")
         # Generate confirmation number: 6 characters, uppercase letters and digits
         confirmation_number = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
 
         return render_template('confirmation.html', flight_number=reservation_info.flight_number, seat=reservation_info.seat, receipt_url=receipt_url,confirmation_number=confirmation_number)
-    return render_template('payment.html',reservation_id=reservation_id, origin=origin, destination=destination, cost_estimate=cost_estimate)
+    return render_template('payment.html',reservation_id=reservation_id, cost_estimate=flight_details.cost)
 
 
 def generate_cities():
@@ -119,14 +121,18 @@ def generate_cities():
     cities = [
         'New York',
         'Los Angeles',
+        'Frankfurt',
         'Chicago',
         'San Francisco',
         'Seattle',
+        'Tokyo',
         'Miami',
         'Atlanta',
         'Boston',
+        'Sydney',
         'Dallas',
-        'Denver'
+        'Denver',
+        'Dubai'
     ]    
     return cities    
 

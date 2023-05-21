@@ -5,7 +5,7 @@ from temporalio.common import RetryPolicy
 from dataclasses import dataclass
 
 with workflow.unsafe.imports_passed_through():
-    from flights_activities import GetFlightsInput, GetPaymentInput, get_flights, get_seat_rows, create_payment, estimate_flight_cost
+    from flights_activities import GetFlightsInput, GetPaymentInput, GetFlightDetailsInput, GetFlightDetails, get_flights, get_seat_rows, create_payment, get_flight_details
 
 @dataclass
 class FlightReservationInfo:
@@ -46,28 +46,33 @@ class FlightBookingWorkflow:
         self._exit = False
 
     @workflow.run
-    async def run(self, input: GetFlightsInput):
-        self._flights = GetFlightsInput
+    async def run(self, flight_details_input: GetFlightDetailsInput):
+        self._flights = list[dict]
         self._seat_rows = int
-        self._cost_estimate = int
-        #reservation_info: FlightReservationInfo = None
+        self._flight_details = GetFlightDetails
+
+        flight_details = await workflow.execute_activity(
+            get_flight_details,
+            flight_details_input,
+            start_to_close_timeout=timedelta(seconds=60),                 
+        )
+        self._flight_details = flight_details        
+        
+        flight_input = GetFlightsInput(
+            origin=flight_details_input.origin,
+            destination=flight_details_input.destination,
+            miles=flight_details.miles
+        )   
 
         flights = await workflow.execute_activity(
             get_flights,
-            input,
+            flight_input,
             start_to_close_timeout=timedelta(seconds=10),
             retry_policy=RetryPolicy(
             non_retryable_error_types=["Exception"],
             ),                  
         )
         self._flights = flights
-
-        cost_estimate = await workflow.execute_activity(
-            estimate_flight_cost,
-            input,
-            start_to_close_timeout=timedelta(seconds=60),                 
-        )
-        self._cost_estimate = cost_estimate        
 
         # Wait for queue item or exit
         await workflow.wait_condition(
@@ -109,8 +114,8 @@ class FlightBookingWorkflow:
         return self._reservation_info
 
     @workflow.query
-    def cost_estimate(self) -> int:
-        return self._cost_estimate
+    def flight_details(self) -> GetFlightDetails:
+        return self._flight_details
 
     @workflow.signal
     async def update_plane_model(self, plane_model: str) -> None:
