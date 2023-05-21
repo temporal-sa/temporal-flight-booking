@@ -10,7 +10,7 @@ from flights_activities import (
     get_seat_rows,
     create_payment,
 )
-from flights_workflow import GetFlightsWorkflow, GetSeatConfigurationWorkflow, CreatePaymentWorkflow, FlightBookingWorkflow
+from flights_workflow import CreatePaymentWorkflow, FlightBookingWorkflow
 
 
 async def main():
@@ -41,7 +41,7 @@ async def main():
     worker = Worker(
         client,
         task_queue="default",
-        workflows=[GetFlightsWorkflow, GetSeatConfigurationWorkflow, CreatePaymentWorkflow, FlightBookingWorkflow],
+        workflows=[CreatePaymentWorkflow, FlightBookingWorkflow],
         activities=[
             get_flights,
             get_seat_rows,

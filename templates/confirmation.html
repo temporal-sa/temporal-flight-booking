@@ -5,13 +5,15 @@
 <h2>Booking Confirmation</h2>
 
 <div class="card">
-  <div class="card-body">
-    <h5 class="card-title">Confirmation Details</h5>
-    <p class="card-text">Flight Number: {{ flight_number }}</p>
-    <p class="card-text">Seat: {{ seat }}</p>
-    <p class="card-text">Payment Receipt: <a href="{{ receipt_url }}">View Receipt</a></p>
-    <p class="card-text">Confirmation Number: {{ confirmation_number }}</p>
-  </div>
+  <form action="/select/{{ reservation_id }}/{{ origin }}/{{ destination }}/{{ flight_number }}/{{ flight_model }}" method="get">
+    <div class="card-body">
+      <h5 class="card-title">Confirmation Details</h5>
+      <p class="card-text">Flight Number: {{ flight_number }}</p>
+      <p class="card-text">Seat: {{ seat }}</p>
+      <p class="card-text">Payment Receipt: <a href="{{ receipt_url }}">View Receipt</a></p>
+      <p class="card-text">Confirmation Number: {{ confirmation_number }}</p>
+    </div>
+  </form>
 </div>
 
 {% endblock %}
