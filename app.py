@@ -1,13 +1,15 @@
 from flask import Flask, render_template, request, abort
+import asyncio
 import random
 import string
 from datetime import datetime, timedelta
 from temporalio.client import Client, WorkflowFailureError
 from flights_activities import GetFlightsInput, GetPaymentInput
 import uuid
+from typing import List, Dict
 
 # Import the workflow from the previous code
-from flights_workflow import GetFlightsWorkflow, GetSeatConfigurationWorkflow, CreatePaymentWorkflow
+from flights_workflow import GetFlightsWorkflow, GetSeatConfigurationWorkflow, CreatePaymentWorkflow, FlightBookingWorkflow
 
 
 app = Flask(__name__)
@@ -26,12 +28,17 @@ async def index():
         # Start Temporal workflow
         client = await Client.connect("localhost:7233")
 
-        flights = await client.execute_workflow(
-            GetFlightsWorkflow.run,
+        booking_workflow = await client.start_workflow(
+            FlightBookingWorkflow.run,
             input,
-            id=f'flights-{input.origin}-{input.destination}-{reservation_id}',
+            id=f'booking-{input.origin}-{input.destination}-{reservation_id}',
             task_queue="default",
         )
+
+        flights: List[Dict] = []
+        while not flights:
+            await asyncio.sleep(1)
+            flights=await booking_workflow.query(FlightBookingWorkflow.flights)
         
         return render_template('flights.html', reservation_id=reservation_id, flights=flights)
     return render_template('index.html', cities=generate_cities())
@@ -48,13 +55,14 @@ async def select_seat(reservation_id, origin, destination, flight_number, flight
     else:
         # Start Temporal workflow
         client = await Client.connect("localhost:7233")
-        
-        seat_rows = await client.execute_workflow(
-            GetSeatConfigurationWorkflow.run,
-            flight_model,
-            id=f'seats-{origin}-{destination}-{reservation_id}',
-            task_queue="default",
-        ) 
+
+        booking_workflow = client.get_workflow_handle(f'booking-{origin}-{destination}-{reservation_id}')
+        await booking_workflow.signal(FlightBookingWorkflow.update_plane_model, flight_model)
+
+        seat_rows: int = None
+        while seat_rows is None:
+            await asyncio.sleep(1)
+            seat_rows=await booking_workflow.query(FlightBookingWorkflow.seat_rows)
 
         return render_template('select_seat.html', reservation_id=reservation_id, origin=origin, destination=destination, flight_number=flight_number, flight_model=flight_model, seat_rows=seat_rows)
 
