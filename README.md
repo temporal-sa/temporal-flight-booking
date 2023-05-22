@@ -5,6 +5,9 @@ Select an origin and destination. This will trigger a ```booking workflow```. It
 
 Once a seat is selected the price is shown. Entering a credit card will kick off a new ```payment workflow``` which uses Stripe. If the payment fails the workflow will be failed and user notified. If the payment succeeds the workflow will complete and a confirmation of the booking will be provided.
 
+# Prerequisites
+Uses ChatGPT to get flight information and Stripe for payment. For both an API key is needed by the worker. Register for both services and generate API keys.
+
 # Setup
 ```bash
 $ mkdir .venv
@@ -19,9 +22,15 @@ $ poetry run python app.py
 
 # Run Worker
 ```bash
+$ export CHATGPT_API_KEY=mykey
+$ export STRIPE_API_KEY=mykey
+```
+
+```bash
 $ poetry run python worker.py
 ```
 
+# Walkthrough
 ![Airline Reservation](/static/index.png)
 ![Airline Reservation](/static/flights.png)
 ![Airline Reservation](/static/seats.png)

@@ -8,6 +8,7 @@ from flights_activities import GetFlightsInput, GetFlightDetailsInput, GetPaymen
 from flights_workflow import FlightReservationInfo
 import uuid
 from typing import List, Dict
+from flights_client import get_client
 
 # Import the workflow from the previous code
 from flights_workflow import CreatePaymentWorkflow, FlightBookingWorkflow
@@ -27,7 +28,7 @@ async def index():
         )   
 
         # Start booking workflow
-        client = await Client.connect("localhost:7233")
+        client = await get_client()
 
         booking_workflow = await client.start_workflow(
             FlightBookingWorkflow.run,
@@ -52,7 +53,7 @@ async def index():
 @app.route('/select/<reservation_id>/<origin>/<destination>/<flight_number>/<flight_model>', methods=['GET', 'POST'])
 async def select_seat(reservation_id, origin, destination, flight_number, flight_model):
     # Get booking workflow handle and signal the plane model based on selected flight
-    client = await Client.connect("localhost:7233")
+    client = await get_client()
 
     if request.method == 'POST':
         # Get seat selection
@@ -80,7 +81,7 @@ async def select_seat(reservation_id, origin, destination, flight_number, flight
 @app.route('/payment/<reservation_id>', methods=['GET', 'POST'])
 async def payment(reservation_id):
     # Get booking workflow handle and query for reservation_info and cost of flight
-    client = await Client.connect("localhost:7233")
+    client = await get_client()
     booking_workflow = client.get_workflow_handle(f'booking-{reservation_id}')
     reservation_info=await booking_workflow.query(FlightBookingWorkflow.reservation_info)
     flight_details=await booking_workflow.query(FlightBookingWorkflow.flight_details)
@@ -136,5 +137,5 @@ def generate_cities():
     ]    
     return cities    
 
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", debug=True)    
