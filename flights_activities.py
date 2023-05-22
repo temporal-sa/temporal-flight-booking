@@ -5,7 +5,7 @@ import asyncio
 import os
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from temporalio import activity
+from temporalio import activity, exceptions
 
 stripe.api_key = os.environ.get('STRIPE_API_KEY')
 openai.api_key = os.environ.get('CHATGPT_API_KEY')
@@ -61,7 +61,18 @@ async def get_flights(input: GetFlightsInput) -> list[dict]:
 
 @activity.defn
 async def get_seat_rows(model: str) -> int:
-    rows = 10 if model == 'A330' else 20
+    
+    rows = 0
+    if model == 'A321':
+        rows = 8
+    elif model == 'B737':
+        rows = 10
+    elif model == 'A330':
+        rows = 14
+    elif model == 'B787':
+        rows = 18
+    else:
+        raise exceptions.ActivityError("Flight model {model} is invalid, cannot determine seat configuration")       
 
     print(f"Retrieved seat rows:\n{rows}")
     return rows
