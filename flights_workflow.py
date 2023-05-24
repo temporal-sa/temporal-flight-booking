@@ -1,7 +1,7 @@
 from datetime import timedelta
 import asyncio
 from temporalio import workflow
-from temporalio.exceptions import ApplicationError, FailureError
+from temporalio.exceptions import ApplicationError
 from temporalio.common import RetryPolicy
 from dataclasses import dataclass
 
@@ -16,7 +16,7 @@ class FlightReservationInfo:
     flight_number: str
     flight_model: str
     seat: str
-    
+
 @workflow.defn
 class CreatePaymentWorkflow:
     @workflow.run

@@ -3,8 +3,8 @@ import asyncio
 import random
 import string
 from temporalio.exceptions import FailureError
-from temporalio.client import Client, WorkflowFailureError, WorkflowExecution
-from flights_activities import GetFlightsInput, GetFlightDetailsInput, GetPaymentInput
+from temporalio.client import WorkflowFailureError
+from flights_activities import GetFlightDetailsInput, GetPaymentInput
 from flights_workflow import FlightReservationInfo
 import uuid
 from typing import List, Dict

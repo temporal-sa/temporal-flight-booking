@@ -1,8 +1,4 @@
 import asyncio
-from typing import Optional
-import os
-
-from temporalio.client import Client, TLSConfig
 from temporalio.worker import Worker
 
 from flights_activities import (
@@ -12,12 +8,12 @@ from flights_activities import (
     get_flight_details,
 )
 
-from flights_client import get_client
+from flights_client import get_worker_client
 from flights_workflow import CreatePaymentWorkflow, FlightBookingWorkflow
 
 
 async def main():
-    client = await get_client()
+    client = await get_worker_client()
 
     worker = Worker(
         client,
