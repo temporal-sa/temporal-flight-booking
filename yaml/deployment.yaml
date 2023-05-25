@@ -72,16 +72,15 @@ spec:
   - websecure
   routes:
   - kind: Rule
-    match: Host(`demo.tmprl-sa.cloud`) && (PathPrefix(`/temporal-flight-booking`))
-    priority: 13
+    match: Host(`fly.tmprl-sa.cloud`)
     services:
     - name: ui
-      passHostHeader: false
+      passHostHeader: true
       port: 80
       responseForwarding:
         flushInterval: 100ms
-      weight: 1
-  entryPoints:
+  tls:
+    secretName: tls-cert-tmprl-sa-cloud-ui
 ---
 apiVersion: apps/v1
 kind: Deployment
