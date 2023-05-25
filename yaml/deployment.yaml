@@ -15,6 +15,74 @@ spec:
   selector:
     app: temporal-flight-booking
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: temporal-flight-booking
+  name: metrics
+spec:
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - name: grpc
+    port: 9000
+    protocol: TCP
+    targetPort: 9000
+  selector:
+    app: temporal-flight-booking
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: temporal-flight-booking
+  name: ui
+spec:
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - name: http
+    port: 5000
+    protocol: TCP
+    targetPort: 5000
+  selector:
+    app: temporal-flight-booking
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  labels:
+    app: temporal-flight-booking
+  name: ingressroute-temporal-flight-booking
+spec:
+  entryPoints:
+  - web
+  routes:
+  - kind: Rule
+    match: Host(`demo.tmprl-sa.cloud`) && (PathPrefix(`/temporal-flight-booking`))
+    priority: 13
+    services:
+    - name: ui
+      passHostHeader: false
+      port: 80
+      responseForwarding:
+        flushInterval: 100ms
+      weight: 1
+  entryPoints:
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -31,7 +99,7 @@ spec:
     spec:
       containers:
       - name: worker
-        image: ktenzer/temporal-flight-booking-worker:v1.0
+        image: ktenzer/temporal-flight-booking-worker:v1.1
         imagePullPolicy: Always
         env:
         - name: CHATGPT_API_KEY
@@ -48,15 +116,17 @@ spec:
           value: temporal-booking.sdvdw.tmprl.cloud:7233
         - name: TEMPORAL_NAMESPACE
           value: temporal-booking.sdvdw
+        - name: TEMPORAL_WORKER_METRICS_PORT
+          value: "9000"                    
         - name: TEMPORAL_MTLS_TLS_CERT
           value: /etc/certs/tls.crt
         - name: TEMPORAL_MTLS_TLS_KEY
-          value: /etc/certs/tls.key
+          value: /etc/certs/tls.key  
         volumeMounts:
         - mountPath: /etc/certs
           name: certs
       - name: workflow
-        image: ktenzer/temporal-flight-booking-workflow:v1.0
+        image: ktenzer/temporal-flight-booking-workflow:v1.1
         imagePullPolicy: Always
         ports:
         - name: workflow
