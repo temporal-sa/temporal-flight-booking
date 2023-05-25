@@ -69,7 +69,7 @@ metadata:
   name: ingressroute-temporal-flight-booking
 spec:
   entryPoints:
-  - web
+  - websecure
   routes:
   - kind: Rule
     match: Host(`demo.tmprl-sa.cloud`) && (PathPrefix(`/temporal-flight-booking`))
