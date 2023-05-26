@@ -3,6 +3,9 @@ kind: Service
 metadata:
   labels:
     app: temporal-flight-booking-worker
+    app.kubernetes.io/headless: "true"
+    app.kubernetes.io/instance: benchtest-regular
+    app.kubernetes.io/name: metrics-monitor   
   name: metrics
 spec:
   internalTrafficPolicy: Cluster
@@ -13,7 +16,7 @@ spec:
   - name: grpc
     port: 9000
     protocol: TCP
-    targetPort: 9000
+    targetPort: grpc  
   selector:
     app: temporal-flight-booking-worker
   sessionAffinity: None
