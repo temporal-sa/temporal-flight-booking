@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: temporal-flight-booking-ui
+  name: ui
+spec:
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - name: http
+    port: 5000
+    protocol: TCP
+    targetPort: 5000
+  selector:
+    app: temporal-flight-booking-ui
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}

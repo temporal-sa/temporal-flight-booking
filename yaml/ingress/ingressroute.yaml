@@ -1,0 +1,20 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  labels:
+    app: temporal-flight-booking-ui
+  name: ingressroute-temporal-flight-booking
+spec:
+  entryPoints:
+  - websecure
+  routes:
+  - kind: Rule
+    match: Host(`fly.tmprl-sa.cloud`)
+    services:
+    - name: ui
+      passHostHeader: true
+      port: 5000
+      responseForwarding:
+        flushInterval: 100ms
+  tls:
+    secretName: tls-cert-tmprl-sa-cloud-ui

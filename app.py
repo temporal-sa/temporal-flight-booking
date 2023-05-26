@@ -40,7 +40,6 @@ async def index():
         # Get the flights from booking workflow query. Can take a few queries to succeed.
         flights: List[Dict] = []
         while not flights:
-            await asyncio.sleep(2)
             try:
                 flights=await booking_workflow.query(FlightBookingWorkflow.flights)
             except:
@@ -73,7 +72,7 @@ async def select_seat(reservation_id, origin, destination, flight_number, flight
         # Query booking workflow for the seat configuration
         seat_rows: int = None
         while seat_rows is None:
-            await asyncio.sleep(2)
+            await asyncio.sleep(1)
             seat_rows=await booking_workflow.query(FlightBookingWorkflow.seat_rows)
 
         return render_template('select_seat.html', reservation_id=reservation_id, origin=origin, destination=destination, flight_number=flight_number, flight_model=flight_model, seat_rows=seat_rows)

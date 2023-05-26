@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: temporal-flight-booking-worker
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: temporal-flight-booking-worker
+  template:
+    metadata:
+      labels:
+        app: temporal-flight-booking-worker
+    spec:
+      containers:
+      - name: worker
+        image: ktenzer/temporal-flight-booking-worker:v1.1
+        imagePullPolicy: Always
+        env:
+        - name: CHATGPT_API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: KEY
+              name: chatgpt-key
+        - name: STRIPE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: KEY
+              name: stripe-key
+        - name: TEMPORAL_HOST_URL
+          value: temporal-booking.sdvdw.tmprl.cloud:7233
+        - name: TEMPORAL_NAMESPACE
+          value: temporal-booking.sdvdw
+        - name: TEMPORAL_WORKER_METRICS_PORT
+          value: "9000"                    
+        - name: TEMPORAL_MTLS_TLS_CERT
+          value: /etc/certs/tls.crt
+        - name: TEMPORAL_MTLS_TLS_KEY
+          value: /etc/certs/tls.key  
+        volumeMounts:
+        - mountPath: /etc/certs
+          name: certs
+      volumes:
+      - name: certs
+        secret:
+          defaultMode: 420
+          secretName: temporal-flight-booking-tls
