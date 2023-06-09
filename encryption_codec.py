@@ -6,8 +6,8 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from temporalio.api.common.v1 import Payload
 from temporalio.converter import PayloadCodec
 
-default_key = b"test-key-test-key-test-key-test!"
-default_key_id = "test-key-id"
+default_key = b"sa-rocks!sa-rocks!sa-rocks!yeah!"
+default_key_id = "c2EtZGVtby1rZXk="
 
 
 class EncryptionCodec(PayloadCodec):
