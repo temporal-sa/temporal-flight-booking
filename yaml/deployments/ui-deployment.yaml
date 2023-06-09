@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: workflow
-        image: ktenzer/temporal-flight-booking-workflow:v1.1
+        image: ktenzer/temporal-flight-booking-workflow:v1.2
         imagePullPolicy: Always
         ports:
         - name: workflow

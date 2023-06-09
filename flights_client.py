@@ -1,12 +1,15 @@
 from temporalio.client import Client, TLSConfig
 from temporalio.runtime import PrometheusConfig, Runtime, TelemetryConfig
+import temporalio.converter
+from encryption_codec import EncryptionCodec
+import dataclasses
 from typing import Optional
 import os
 
 def init_runtime_with_prometheus(port: int) -> Runtime:
     return Runtime(
         telemetry=TelemetryConfig(
-            metrics=PrometheusConfig(bind_address=f"127.0.0.1:{port}")
+            metrics=PrometheusConfig(bind_address=f"0.0.0.0:{port}")
         )
     )
 
@@ -32,6 +35,9 @@ async def get_client()-> Client:
                 client_cert=client_cert,
                 client_private_key=client_key,
             ),
+            data_converter=dataclasses.replace(
+                temporalio.converter.default(), payload_codec=EncryptionCodec()
+            ),            
         )
     else:
         client = await Client.connect(
@@ -64,6 +70,9 @@ async def get_worker_client()-> Client:
                 client_cert=client_cert,
                 client_private_key=client_key,
             ),
+            data_converter=dataclasses.replace(
+                temporalio.converter.default(), payload_codec=EncryptionCodec()
+            ),             
         )
     else:
         client = await Client.connect(

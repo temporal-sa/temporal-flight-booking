@@ -1,0 +1,17 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app: temporal-flight-booking-worker
+  name: metrics-monitor
+spec:
+  endpoints:
+  - port: metrics
+    interval: 15s
+    scrapeTimeout: 14s
+  namespaceSelector:
+    matchNames:
+    - temporal-flight-booking
+  selector:
+    matchLabels:
+      app: temporal-flight-booking-worker

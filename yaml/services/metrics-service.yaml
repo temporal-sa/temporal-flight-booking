@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
+  annotations:
+    prometheus.io/port: "metrics"
+    prometheus.io/scrape: "true"
   labels:
     app: temporal-flight-booking-worker
-    app.kubernetes.io/headless: "true"
-    app.kubernetes.io/instance: benchtest-regular
-    app.kubernetes.io/name: metrics-monitor   
   name: metrics
 spec:
   internalTrafficPolicy: Cluster
@@ -13,10 +13,10 @@ spec:
   - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: grpc
-    port: 9000
+  - name: metrics
+    port: 9090
     protocol: TCP
-    targetPort: grpc  
+    targetPort: 9090
   selector:
     app: temporal-flight-booking-worker
   sessionAffinity: None

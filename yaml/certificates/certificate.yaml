@@ -1,13 +1,13 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: tmprl-sa-cloud-ui
+  name: fly-tmprl-demo-cloud
 spec:
-  secretName: tls-cert-tmprl-sa-cloud-ui
+  secretName: fly-tmprl-demo-cloud-tls
   privateKey:
     rotationPolicy: Always
   dnsNames:
-  - fly.tmprl-sa.cloud
+  - fly.tmprl-demo.cloud
   issuerRef:
     name: letsencrypt
     kind: ClusterIssuer

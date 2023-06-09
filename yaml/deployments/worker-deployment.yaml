@@ -14,8 +14,11 @@ spec:
     spec:
       containers:
       - name: worker
-        image: ktenzer/temporal-flight-booking-worker:v1.1
+        image: ktenzer/temporal-flight-booking-worker:v1.2
         imagePullPolicy: Always
+        ports:
+        - name: worker
+          containerPort: 9090          
         env:
         - name: CHATGPT_API_KEY
           valueFrom:
@@ -32,7 +35,7 @@ spec:
         - name: TEMPORAL_NAMESPACE
           value: temporal-booking.sdvdw
         - name: TEMPORAL_WORKER_METRICS_PORT
-          value: "9000"                    
+          value: "9090"                    
         - name: TEMPORAL_MTLS_TLS_CERT
           value: /etc/certs/tls.crt
         - name: TEMPORAL_MTLS_TLS_KEY
@@ -44,4 +47,4 @@ spec:
       - name: certs
         secret:
           defaultMode: 420
-          secretName: temporal-flight-booking-tls
+          secretName: temporal-flight-booking-tls 

@@ -3,10 +3,10 @@ kind: IngressRoute
 metadata:
   labels:
     app: temporal-flight-booking-ui
-  name: ingressroute-temporal-flight-booking
+  name: ingressroute-temporal-flight-booking-http
 spec:
   entryPoints:
-  - websecure
+  - web
   routes:
   - kind: Rule
     match: Host(`fly.tmprl-demo.cloud`)
@@ -16,5 +16,3 @@ spec:
       port: 5000
       responseForwarding:
         flushInterval: 100ms
-  tls:
-    secretName: fly-tmprl-demo-cloud-tls
