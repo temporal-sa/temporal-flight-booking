@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: worker
-        image: ktenzer/temporal-flight-booking-worker:v1.2
+        image: ktenzer/temporal-flight-booking-worker:v1.3
         imagePullPolicy: Always
         ports:
         - name: worker
@@ -34,6 +34,8 @@ spec:
           value: temporal-booking.sdvdw.tmprl.cloud:7233
         - name: TEMPORAL_NAMESPACE
           value: temporal-booking.sdvdw
+        - name: TEMPORAL_TASK_QUEUE
+          value: temporal-flight-booking
         - name: TEMPORAL_WORKER_METRICS_PORT
           value: "9090"                    
         - name: TEMPORAL_MTLS_TLS_CERT

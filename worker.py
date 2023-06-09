@@ -1,5 +1,6 @@
 import asyncio
 from temporalio.worker import Worker
+import os
 
 from flights_activities import (
     get_flights,
@@ -17,7 +18,7 @@ async def main():
 
     worker = Worker(
         client,
-        task_queue="default",
+        task_queue=os.getenv("TEMPORAL_TASK_QUEUE"),
         workflows=[CreatePaymentWorkflow, FlightBookingWorkflow],
         activities=[
             get_flights,

@@ -9,6 +9,7 @@ from flights_workflow import FlightReservationInfo
 import uuid
 from typing import List, Dict
 from flights_client import get_client
+import os
 
 # Import the workflow from the previous code
 from flights_workflow import CreatePaymentWorkflow, FlightBookingWorkflow
@@ -34,7 +35,7 @@ async def index():
             FlightBookingWorkflow.run,
             flight_details_input,
             id=f'booking-{reservation_id}',
-            task_queue="default",
+            task_queue=os.getenv("TEMPORAL_TASK_QUEUE"),
         )
 
         # Get the flights from booking workflow query. Can take a few queries to succeed.
@@ -101,7 +102,7 @@ async def payment(reservation_id):
                     CreatePaymentWorkflow.run,
                     input,
                     id=f'payment-{reservation_info.reservation_id}',
-                    task_queue="default",
+                    task_queue=os.getenv("TEMPORAL_TASK_QUEUE"),
                 )
 
                 isPayment = True   
