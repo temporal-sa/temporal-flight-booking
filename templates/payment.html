@@ -14,8 +14,8 @@
         </div>
         <div class="form-group">
           <label for="credit-card">Credit Card Number:</label>
-          <input type="text" id="credit-card" name="credit-card" class="form-control" required>                    
-        </div>
+          <input type="text" id="credit-card" name="credit-card" class="form-control" pattern="[0-9]{16}" required title="Credit card number must be 16 digits">
+        </div>        
         <div class="text-center">
           <button class="btn btn-dark my-3">Confirm Payment</button>
           <a href="/" class="btn btn-secondary my-3">Cancel</a>

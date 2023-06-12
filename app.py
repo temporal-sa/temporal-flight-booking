@@ -87,10 +87,16 @@ async def payment(reservation_id):
     flight_details=await booking_workflow.query(FlightBookingWorkflow.flight_details)
 
     if request.method == 'POST':
-        # Get form data
+        # Get form data, define a working credit card number
+        credit_card: string = None
+        if request.form.get('credit-card') == '1234123412341234':
+            credit_card ='tok_visa'
+        else:
+            credit_card = request.form.get('credit-card') 
+
         input = GetPaymentInput(
             amount=str(flight_details.cost * 100),
-            token=request.form.get('credit-card'),
+            token=credit_card,
             currency='usd'
         )   
         
