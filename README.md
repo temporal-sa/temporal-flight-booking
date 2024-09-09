@@ -10,9 +10,8 @@ Uses ChatGPT to get flight information and Stripe for payment. For both an API k
 
 # Setup
 ```bash
-$ mkdir .venv
 $ curl -sSL https://install.python-poetry.org | python3 -
-$ poetry install
+$ poetry install/update (if installed)
 ```
 
 # Run App
