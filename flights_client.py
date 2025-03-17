@@ -36,9 +36,10 @@ async def get_client()-> Client:
                 client_private_key=client_key,
             ),
             data_converter=dataclasses.replace(
-                temporalio.converter.default(), payload_codec=EncryptionCodec()
-            ),            
-        )
+                temporalio.converter.default(), payload_codec=EncryptionCodec(),
+                failure_converter_class=temporalio.converter.DefaultFailureConverterWithEncodedAttributes,
+            ), 
+        )   
     else:
         client = await Client.connect(
             "localhost:7233",
@@ -71,8 +72,9 @@ async def get_worker_client()-> Client:
                 client_private_key=client_key,
             ),
             data_converter=dataclasses.replace(
-                temporalio.converter.default(), payload_codec=EncryptionCodec()
-            ),             
+                temporalio.converter.default(), payload_codec=EncryptionCodec(),
+                failure_converter_class=temporalio.converter.DefaultFailureConverterWithEncodedAttributes,
+            ),
         )
     else:
         client = await Client.connect(
